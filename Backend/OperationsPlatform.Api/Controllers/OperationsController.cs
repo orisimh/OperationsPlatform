@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OperationsPlatform.Api.Data;
 using OperationsPlatform.Api.Models;
 using OperationsPlatform.Api.Services;
 using System.Text.Json;
@@ -11,11 +13,19 @@ public sealed class OperationsController(
     OperationDefinitionService definitions,
     OperationEngine engine,
     CSharpWorkerClient csharpWorker,
-    BuiltInHandlerCatalog handlers) : ControllerBase
+    BuiltInHandlerCatalog handlers,
+    OperationsDbContext db) : ControllerBase
 {
     [HttpGet("/api/handlers")]
-    public ActionResult<IReadOnlyList<HandlerDescriptorDto>> GetHandlers()
-        => Ok(handlers.GetDescriptors());
+    public async Task<ActionResult<IReadOnlyList<HandlerDescriptorDto>>> GetHandlers(CancellationToken ct)
+    {
+        var namesByCode = await db.Operations
+            .AsNoTracking()
+            .Where(operation => operation.IsActive)
+            .ToDictionaryAsync(operation => operation.Code, operation => operation.Name, StringComparer.OrdinalIgnoreCase, ct);
+
+        return Ok(handlers.GetDescriptors(namesByCode));
+    }
 
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<OperationDto>>> GetAll([FromQuery] bool includeInactive = false, CancellationToken ct = default)
