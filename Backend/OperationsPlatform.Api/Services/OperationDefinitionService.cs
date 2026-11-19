@@ -32,7 +32,7 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
         ValidateRequest(request);
         await ValidateImplementationAsync(request, ct);
         var normalizedCode = request.Code.Trim();
-        if (await db.Operations.AnyAsync(x => x.Code == normalizedCode, ct))
+        if (await db.Operations.AnyAsync(x => EF.Functions.Collate(x.Code, "Latin1_General_100_CI_AS") == normalizedCode, ct))
             throw new InvalidOperationException($"Operation code '{normalizedCode}' already exists.");
 
         var now = DateTime.UtcNow;
@@ -49,7 +49,14 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
             Version = 1, CreatedAtUtc = now, UpdatedAtUtc = now
         };
         db.Operations.Add(entity);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex))
+        {
+            throw new InvalidOperationException($"Operation code '{normalizedCode}' already exists.");
+        }
         return ToDto(entity);
     }
 
@@ -62,7 +69,7 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
         ValidateRequest(request);
         await ValidateImplementationAsync(request, ct);
         var normalizedCode = request.Code.Trim();
-        if (await db.Operations.AnyAsync(x => x.Id != id && x.Code == normalizedCode, ct))
+        if (await db.Operations.AnyAsync(x => x.Id != id && EF.Functions.Collate(x.Code, "Latin1_General_100_CI_AS") == normalizedCode, ct))
             throw new InvalidOperationException($"Operation code '{normalizedCode}' already exists.");
 
         var normalizedDescription = request.Description?.Trim() ?? string.Empty;
@@ -83,7 +90,14 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
         entity.Icon = normalizedIcon; entity.IsActive = request.IsActive; entity.SortOrder = request.SortOrder;
         if (changed) entity.Version++;
         entity.UpdatedAtUtc = DateTime.UtcNow;
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueCodeViolation(ex))
+        {
+            throw new InvalidOperationException($"Operation code '{normalizedCode}' already exists.");
+        }
         return ToDto(entity);
     }
 
@@ -105,6 +119,8 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
     {
         if (string.IsNullOrWhiteSpace(request.Code) || request.Code.Trim().Length > 120)
             throw new ArgumentException("Code is required and must be at most 120 characters.");
+        if (!System.Text.RegularExpressions.Regex.IsMatch(request.Code.Trim(), @"^[A-Za-z0-9._-]+$"))
+            throw new ArgumentException("Code may contain only letters, numbers, dots, dashes and underscores.");
         if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 160)
             throw new ArgumentException("Name is required and must be at most 160 characters.");
         if (!OperationTypes.Contains(request.OperationType))
@@ -243,6 +259,12 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
                 await ValidateBuilderGraphNodeAsync(nestedConfig.RootElement, nestedChain, depth + 1, ct);
             }
         }
+    }
+
+    private static bool IsUniqueCodeViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is Microsoft.Data.SqlClient.SqlException sqlException
+            && (sqlException.Number == 2601 || sqlException.Number == 2627);
     }
 
     private static string GetNodeString(JsonElement node, string name, string fallback) =>
