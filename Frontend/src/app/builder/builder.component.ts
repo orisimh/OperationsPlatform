@@ -110,6 +110,12 @@ export class BuilderComponent implements OnInit {
 
   save(): void {
     this.codeError = '';
+    const nodeIds = this.nodes.map(node => node.id.trim()).filter(id => id.length > 0);
+    if (nodeIds.length !== this.nodes.length || new Set(nodeIds.map(id => id.toLowerCase())).size !== nodeIds.length) {
+      this.codeError = 'Node IDs must be non-empty and unique.';
+      return;
+    }
+    this.nodes.forEach((node, index) => { node.id = nodeIds[index]; });
     if (this.form.invalid || this.nodes.length === 0) { this.form.markAllAsTouched(); return; }
     let nodes: any[];
     try {
