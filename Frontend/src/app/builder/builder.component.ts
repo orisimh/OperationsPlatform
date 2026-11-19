@@ -49,7 +49,19 @@ export class BuilderComponent implements OnInit {
     this.api.getOperation(id).subscribe(op => {
       this.form.patchValue(op);
       const config = JSON.parse(op.configurationJson || '{}');
-      this.nodes = (config.nodes || []).map((n: any) => ({ id: n.id, operationId: n.operationId, operationCode: n.operationCode, handlerKey: n.handlerKey || '', inputA: n.inputA || '$fieldA', inputB: n.inputB || '$fieldB', configurationJson: JSON.stringify(n.configuration || {}, null, 2) }));
+      this.nodes = (config.nodes || []).map((n: any) => {
+        const operationCode = n.operationCode || n.handlerKey || '';
+        const operation = this.operations.find(item => item.code === operationCode);
+        return {
+          id: n.id,
+          operationId: n.operationId || operation?.id,
+          operationCode: n.operationCode || operation?.code,
+          handlerKey: n.handlerKey || '',
+          inputA: n.inputA || '$fieldA',
+          inputB: n.inputB || '$fieldB',
+          configurationJson: JSON.stringify(n.configuration || {}, null, 2)
+        };
+      });
       this.nextId = this.nodes.reduce((max, node) => {
         const match = /^step(\d+)$/.exec(node.id);
         return Math.max(max, match ? Number(match[1]) : 0);
@@ -98,6 +110,12 @@ export class BuilderComponent implements OnInit {
 
   save(): void {
     this.codeError = '';
+    const nodeIds = this.nodes.map(node => node.id.trim()).filter(id => id.length > 0);
+    if (nodeIds.length !== this.nodes.length || new Set(nodeIds.map(id => id.toLowerCase())).size !== nodeIds.length) {
+      this.codeError = 'Node IDs must be non-empty and unique.';
+      return;
+    }
+    this.nodes.forEach((node, index) => { node.id = nodeIds[index]; });
     if (this.form.invalid || this.nodes.length === 0) { this.form.markAllAsTouched(); return; }
     let nodes: any[];
     try {
