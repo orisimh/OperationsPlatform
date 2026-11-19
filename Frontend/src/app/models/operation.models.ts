@@ -1,3 +1,8 @@
+export interface HandlerDescriptor {
+  key: string;
+  label: string;
+}
+
 export interface OperationDefinition {
   id: number;
   code: string;

@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
-  ApplicationLog, DashboardData, HistoryItem, OperationDefinition,
+  ApplicationLog, DashboardData, HandlerDescriptor, HistoryItem, OperationDefinition,
   OperationExecutionResponse, PagedResult, UpsertOperationRequest
 } from '../models/operation.models';
 
@@ -12,6 +12,9 @@ export class OperationsApiService {
   private readonly baseUrl = environment.apiBaseUrl;
   constructor(private http: HttpClient) {}
 
+  getHandlers(): Observable<HandlerDescriptor[]> {
+    return this.http.get<HandlerDescriptor[]>(`${this.baseUrl}/handlers`);
+  }
   getOperations(includeInactive = false): Observable<OperationDefinition[]> {
     return this.http.get<OperationDefinition[]>(`${this.baseUrl}/operations`, { params: { includeInactive: String(includeInactive) } });
   }

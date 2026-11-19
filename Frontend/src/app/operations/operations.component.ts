@@ -15,7 +15,7 @@ export class OperationsComponent implements OnInit {
   ngOnInit(): void { this.load(); }
   load(): void {
     this.loading = true;
-    this.api.getOperations(true).pipe(finalize(() => {
+    this.api.getOperations(false).pipe(finalize(() => {
       this.loading = false;
       this.cdr.markForCheck();
     })).subscribe({

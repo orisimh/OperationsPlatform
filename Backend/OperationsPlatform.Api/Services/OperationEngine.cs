@@ -59,7 +59,7 @@ public sealed class OperationEngine(
                 }
                 case "builder":
                 {
-                    var builderResult = builderExecutor.Execute(config, request.FieldA, request.FieldB);
+                    var builderResult = await builderExecutor.ExecuteAsync(config, request.FieldA, request.FieldB, operation.Id, ct);
                     result = builderResult.Result;
                     trace = builderResult.Trace;
                     break;

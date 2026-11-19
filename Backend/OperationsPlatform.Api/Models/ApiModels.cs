@@ -123,6 +123,8 @@ public sealed class ValidateCSharpRequest
     public string SourceCode { get; set; } = string.Empty;
 }
 
+public sealed record HandlerDescriptorDto(string Key, string Label);
+
 public sealed class ValidateCSharpResponse
 {
     public bool Success { get; set; }

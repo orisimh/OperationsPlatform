@@ -170,11 +170,30 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
                 if (node.ValueKind != JsonValueKind.Object)
                     throw new ArgumentException("Each Builder node must be a JSON object.");
                 var nodeId = node.TryGetProperty("id", out var idValue) ? idValue.GetString() : null;
-                var key = node.TryGetProperty("handlerKey", out var keyValue) ? keyValue.GetString() : null;
                 if (string.IsNullOrWhiteSpace(nodeId) || !nodeIds.Add(nodeId))
                     throw new ArgumentException("Builder node IDs must be unique and non-empty.");
-                if (string.IsNullOrWhiteSpace(key) || !handlers.Exists(key))
-                    throw new ArgumentException($"Builder node '{nodeId}' references an unknown built-in handler.");
+
+                var operationId = 0;
+                var hasOperationId = node.TryGetProperty("operationId", out var operationIdValue) && operationIdValue.TryGetInt32(out operationId);
+                var hasOperationCode = node.TryGetProperty("operationCode", out var operationCodeValue) && operationCodeValue.ValueKind == JsonValueKind.String;
+                var key = node.TryGetProperty("handlerKey", out var keyValue) ? keyValue.GetString() : null;
+
+                if (hasOperationId)
+                {
+                    if (!db.Operations.Any(x => x.Id == operationId && x.IsActive))
+                        throw new ArgumentException($"Builder node '{nodeId}' references an inactive or missing operation ID '{operationId}'.");
+                }
+                else if (hasOperationCode)
+                {
+                    var operationCode = operationCodeValue.GetString();
+                    if (string.IsNullOrWhiteSpace(operationCode) || !db.Operations.Any(x => x.Code == operationCode && x.IsActive))
+                        throw new ArgumentException($"Builder node '{nodeId}' references an inactive or missing operation '{operationCode}'.");
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(key) || !handlers.Exists(key))
+                        throw new ArgumentException($"Builder node '{nodeId}' references an unknown built-in handler.");
+                }
 
                 ValidateBuilderReference(GetNodeString(node, "inputA", "$fieldA"), nodeIds.Where(x => x != nodeId).ToHashSet(StringComparer.OrdinalIgnoreCase), nodeId);
                 ValidateBuilderReference(GetNodeString(node, "inputB", "$fieldB"), nodeIds.Where(x => x != nodeId).ToHashSet(StringComparer.OrdinalIgnoreCase), nodeId);
@@ -183,9 +202,48 @@ public sealed class OperationDefinitionService(OperationsDbContext db, CSharpWor
             var returnReference = config.TryGetProperty("return", out var returnValue) && returnValue.ValueKind == JsonValueKind.String
                 ? returnValue.GetString() ?? string.Empty : orderedIds[^1] + ".output";
             ValidateBuilderReference(returnReference, nodeIds, "final output");
+            await ValidateBuilderGraphAsync(config, ct);
         }
     }
 
+
+    private async Task ValidateBuilderGraphAsync(JsonElement config, CancellationToken ct)
+    {
+        await ValidateBuilderGraphNodeAsync(config, new HashSet<int>(), 0, ct);
+    }
+
+    private async Task ValidateBuilderGraphNodeAsync(JsonElement config, HashSet<int> operationChain, int depth, CancellationToken ct)
+    {
+        if (depth >= 10)
+            throw new ArgumentException("Builder nesting cannot exceed 10 levels.");
+        if (!config.TryGetProperty("nodes", out var nodes) || nodes.ValueKind != JsonValueKind.Array)
+            return;
+
+        foreach (var node in nodes.EnumerateArray())
+        {
+            OperationDefinition? operation = null;
+            if (node.TryGetProperty("operationId", out var operationIdValue) && operationIdValue.TryGetInt32(out var operationId))
+            {
+                if (operationChain.Contains(operationId))
+                    throw new ArgumentException("Builder graph contains a cycle between operation references.");
+                operation = await db.Operations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == operationId && x.IsActive, ct);
+            }
+            else if (node.TryGetProperty("operationCode", out var operationCodeValue) && operationCodeValue.ValueKind == JsonValueKind.String)
+            {
+                var operationCode = operationCodeValue.GetString();
+                operation = await db.Operations.AsNoTracking().FirstOrDefaultAsync(x => x.Code == operationCode && x.IsActive, ct);
+                if (operation is not null && operationChain.Contains(operation.Id))
+                    throw new ArgumentException("Builder graph contains a cycle between operation references.");
+            }
+
+            if (operation?.ImplementationType.Equals("Builder", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var nestedChain = new HashSet<int>(operationChain) { operation.Id };
+                using var nestedConfig = JsonDocument.Parse(operation.ConfigurationJson);
+                await ValidateBuilderGraphNodeAsync(nestedConfig.RootElement, nestedChain, depth + 1, ct);
+            }
+        }
+    }
 
     private static string GetNodeString(JsonElement node, string name, string fallback) =>
         node.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
