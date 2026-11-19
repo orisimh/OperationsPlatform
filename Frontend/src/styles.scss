@@ -57,7 +57,7 @@ body.light-theme {
 html, body { height: 100%; }
 body {
   margin: 0;
-  color-scheme: light;
+  color-scheme: dark;
   background: var(--bg);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
@@ -114,6 +114,108 @@ h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
 .mat-mdc-table, .mat-mdc-paginator { background: var(--surface); color: var(--text); }
 .mat-mdc-cell, .mat-mdc-header-cell { color: var(--text); }
 .mat-mdc-progress-spinner { --mdc-circular-progress-active-indicator-color: var(--accent); }
+body.dark-theme {
+  color-scheme: dark;
+  --text: #edf3ff;
+  --muted: #aebbd1;
+  color: var(--text);
+}
+body.dark-theme h1,
+body.dark-theme h2,
+body.dark-theme h3,
+body.dark-theme h4,
+body.dark-theme p,
+body.dark-theme strong,
+body.dark-theme small,
+body.dark-theme td,
+body.dark-theme th,
+body.dark-theme label,
+body.dark-theme pre,
+body.dark-theme .mat-mdc-select-value,
+body.dark-theme .mat-mdc-input-element,
+body.dark-theme .mat-mdc-floating-label,
+body.dark-theme .mdc-floating-label {
+  color: var(--text);
+}
+body.dark-theme .mat-mdc-form-field .mdc-floating-label,
+body.dark-theme .mat-mdc-form-field-hint,
+body.dark-theme .mat-mdc-form-field-error,
+body.dark-theme .mat-mdc-form-field-subscript-wrapper,
+body.dark-theme .field-label,
+body.dark-theme .muted,
+body.dark-theme .pagination,
+body.dark-theme .log-meta,
+body.dark-theme .log-main time,
+body.dark-theme .node-output,
+body.dark-theme .canvas-toolbar span,
+body.dark-theme .node-id-group label {
+  color: var(--muted);
+}
+body.dark-theme .mat-mdc-select-arrow,
+body.dark-theme .mat-icon,
+body.dark-theme mat-icon {
+  color: inherit;
+}
+body.dark-theme input,
+body.dark-theme textarea,
+body.dark-theme select,
+body.dark-theme .node-id-input {
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+}
+body.dark-theme .mat-mdc-table,
+body.dark-theme .history-panel,
+body.dark-theme .logs-panel,
+body.dark-theme .panel,
+body.dark-theme .node-card,
+body.dark-theme .operation-card,
+body.dark-theme .metric-card {
+  color: var(--text);
+}
+body.dark-theme .mat-mdc-menu-panel,
+body.dark-theme .mat-mdc-select-panel {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+body.dark-theme .mat-mdc-option,
+body.dark-theme .mat-mdc-option.mdc-list-item {
+  color: var(--text) !important;
+}
+body.dark-theme .mat-mdc-menu-item,
+body.dark-theme .mat-mdc-tooltip,
+body.dark-theme .cdk-overlay-pane,
+body.dark-theme .mat-mdc-dialog-container,
+body.dark-theme .mat-mdc-snack-bar-container,
+body.dark-theme .mat-mdc-paginator,
+body.dark-theme .mat-mdc-paginator-page-size,
+body.dark-theme .mat-mdc-paginator-range-label,
+body.dark-theme .mat-mdc-table,
+body.dark-theme .mat-mdc-header-cell,
+body.dark-theme .mat-mdc-cell,
+body.dark-theme .mat-mdc-row,
+body.dark-theme .log-entry,
+body.dark-theme .log-main,
+body.dark-theme .mini-history,
+body.dark-theme .usage-row,
+body.dark-theme .operation-card,
+body.dark-theme .metric-card {
+  color: var(--text);
+}
+body.dark-theme .mat-mdc-tooltip,
+body.dark-theme .mat-mdc-dialog-container,
+body.dark-theme .mat-mdc-paginator {
+  background: var(--surface);
+}
+body.dark-theme input::placeholder,
+body.dark-theme textarea::placeholder,
+body.dark-theme .mat-mdc-floating-label,
+body.dark-theme .mdc-floating-label,
+body.dark-theme .mat-mdc-form-field-hint,
+body.dark-theme .mat-mdc-form-field-error {
+  color: var(--muted) !important;
+  opacity: 1;
+}
 
 .page { max-width: 1280px; margin: 0 auto; padding: 20px 24px 32px; }
 .page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
@@ -135,6 +237,11 @@ table { width: 100%; border-collapse: collapse; }
 th { text-align: left; padding: 13px 15px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; border-bottom: 1px solid var(--border); }
 td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; }
 tr:last-child td { border-bottom: 0; }
+th, td { vertical-align: middle; }
+.history-panel th,
+.history-panel td { white-space: normal; }
+.history-panel .input-col,
+.history-panel .result-col { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .empty-state { padding: 40px 20px; text-align: center; color: var(--muted); }
 .empty-state mat-icon { font-size: 34px; width: 34px; height: 34px; opacity: .55; }
 .form-grid {

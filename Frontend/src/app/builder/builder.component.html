@@ -28,8 +28,8 @@
     <aside class="builder-settings panel">
       <div class="settings-head"><div class="eyebrow">OPERATION SETTINGS</div><h2>Configure flow</h2><p>Set the metadata that will be shown in the catalog.</p></div>
       <form [formGroup]="form">
-        <mat-form-field appearance="outline"><mat-label>Operation name</mat-label><input matInput formControlName="name" placeholder="Normalize and compare"></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Unique code</mat-label><input matInput formControlName="code" placeholder="builder.normalize-compare"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Operation name</mat-label><input matInput formControlName="name"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Unique code</mat-label><input matInput formControlName="code"></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="3" formControlName="description"></textarea></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Category</mat-label><input matInput formControlName="category"></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Operation category type</mat-label><mat-select formControlName="operationType"><mat-option value="String">String</mat-option><mat-option value="Integer">Integer</mat-option></mat-select></mat-form-field>
