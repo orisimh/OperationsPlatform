@@ -89,8 +89,8 @@ dotnet run --project .\Backend\OperationsPlatform.Api\OperationsPlatform.Api.csp
 
 The API starts at `http://localhost:5080`:
 
-- Health: `http://localhost:5080/health`
-- Swagger: `http://localhost:5080/swagger`
+- [Health](http://localhost:5080/health)
+- [Swagger UI](http://localhost:5080/swagger)
 
 ### 5. Start the frontend
 
