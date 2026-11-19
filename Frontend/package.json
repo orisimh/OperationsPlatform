@@ -1,0 +1,39 @@
+{
+  "name": "operations-platform-client",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Operations Hub frontend - Angular 22",
+  "engines": {
+    "node": "^22.22.3 || ^24.15.0 || ^26.0.0",
+    "npm": ">=10.9.0"
+  },
+  "scripts": {
+    "start": "ng serve --host localhost --port 4200",
+    "build": "ng build --configuration production",
+    "build:dev": "ng build --configuration development",
+    "watch": "ng build --watch --configuration development",
+    "version": "ng version"
+  },
+  "dependencies": {
+    "@angular/animations": "22.2.7",
+    "@angular/cdk": "22.2.7",
+    "@angular/common": "22.2.7",
+    "@angular/compiler": "22.2.7",
+    "@angular/core": "22.2.7",
+    "@angular/forms": "22.2.7",
+    "@angular/material": "22.2.7",
+    "@angular/platform-browser": "22.2.7",
+    "@angular/platform-browser-dynamic": "22.2.7",
+    "@angular/router": "22.2.7",
+    "rxjs": "^7.8.2",
+    "tslib": "^2.8.1",
+    "zone.js": "~0.16.0"
+  },
+  "devDependencies": {
+    "@angular/build": "22.2.7",
+    "@angular/cli": "22.2.7",
+    "@angular/compiler-cli": "22.2.7",
+    "sass": "^1.89.2",
+    "typescript": "~6.0.0"
+  }
+}

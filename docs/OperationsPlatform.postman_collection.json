@@ -1,0 +1,66 @@
+{
+  "info": {
+    "name": "Orbit Operations Platform",
+    "description": "Example requests for the same REST API consumed by the Angular client.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5080/api" },
+    { "key": "operationId", "value": "1" },
+    { "key": "fieldA", "value": "Hello" },
+    { "key": "fieldB", "value": "World" }
+  ],
+  "item": [
+    {
+      "name": "Operations",
+      "item": [
+        {
+          "name": "List active operations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/operations"
+          }
+        },
+        {
+          "name": "Get operation by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/operations/{{operationId}}"
+          }
+        },
+        {
+          "name": "Execute operation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fieldA\": \"{{fieldA}}\",\n  \"fieldB\": \"{{fieldB}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/operations/{{operationId}}/execute"
+          }
+        }
+      ]
+    },
+    {
+      "name": "History and monitoring",
+      "item": [
+        {
+          "name": "Execution history",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/history?page=1&pageSize=20" }
+        },
+        {
+          "name": "Application logs",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/logs?page=1&pageSize=30" }
+        },
+        {
+          "name": "Dashboard",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/dashboard" }
+        }
+      ]
+    }
+  ]
+}

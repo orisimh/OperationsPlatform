@@ -1,0 +1,59 @@
+<div class="page" *ngIf="!loading; else busy">
+  <div class="page-heading"><div><div class="eyebrow">OPERATION CATALOG / CONFIGURATION</div><h1>{{ isEdit ? 'Edit operation' : 'Create operation' }}</h1><p>Define the operation metadata, inputs and execution configuration.</p></div><button mat-stroked-button class="ghost-btn" routerLink="/operations"><mat-icon>arrow_back</mat-icon> Back to catalog</button></div>
+  <form [formGroup]="form" (ngSubmit)="save()" class="editor-layout">
+    <section class="panel editor-main">
+      <div class="section-title"><div><h2>General information</h2><p>How this operation appears in your catalog.</p></div><span class="step-number">01</span></div>
+      <div class="form-grid">
+        <mat-form-field appearance="outline"><mat-label>Operation name</mat-label><input matInput formControlName="name" placeholder="e.g. Join customer names"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Unique code</mat-label><input matInput formControlName="code" placeholder="string.join-names"><mat-hint>Letters, numbers, dot, dash and underscore.</mat-hint></mat-form-field>
+        <mat-form-field appearance="outline" class="full-span"><mat-label>Description</mat-label><textarea matInput rows="2" formControlName="description"></textarea></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Operation type</mat-label><mat-select formControlName="operationType"><mat-option value="String">String</mat-option><mat-option value="Integer">Integer</mat-option><mat-option value="RestApi">REST API</mat-option></mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Implementation type</mat-label><mat-select formControlName="implementationType" (selectionChange)="onImplementationChange($event.value)"><mat-option value="BuiltIn">Built-in Handler</mat-option><mat-option value="CSharp">Custom C#</mat-option><mat-option value="RestApi">REST API</mat-option></mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Category</mat-label><input matInput formControlName="category" placeholder="String"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Icon (Material icon name)</mat-label><input matInput formControlName="icon" placeholder="bolt"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Output type</mat-label><mat-select formControlName="outputType"><mat-option *ngFor="let t of ['String','Integer','Decimal','Boolean','Json']" [value]="t">{{ t }}</mat-option></mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Sort order</mat-label><input matInput type="number" formControlName="sortOrder"></mat-form-field>
+        <div class="full-span active-row"><mat-checkbox formControlName="isActive">Operation is active and available for execution</mat-checkbox></div>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="section-title inputs-title"><div><h2>Input definitions</h2><p>Each operation receives two input values. These JSON objects control labels and input types in Angular.</p></div><span class="step-number">02</span></div>
+      <div class="form-grid">
+        <div><label class="field-label">Field A configuration</label><textarea class="code-editor json-editor" formControlName="inputAConfigJson" spellcheck="false"></textarea></div>
+        <div><label class="field-label">Field B configuration</label><textarea class="code-editor json-editor" formControlName="inputBConfigJson" spellcheck="false"></textarea></div>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="section-title inputs-title"><div><h2>Execution configuration</h2><p>Configuration depends on the implementation type selected above.</p></div><span class="step-number">03</span></div>
+      <ng-container *ngIf="form.get('implementationType')?.value === 'CSharp'; else jsonConfig">
+        <div class="code-header"><div><strong>C# source code</strong><span>CustomOperation.Execute(string? fieldA, string? fieldB, JsonElement configuration)</span></div><button mat-stroked-button type="button" class="ghost-btn" (click)="validateCode()" [disabled]="validating"><mat-icon>fact_check</mat-icon>{{ validating ? 'Validating…' : 'Validate code' }}</button></div>
+        <textarea class="code-editor csharp-editor" [(ngModel)]="sourceCode" [ngModelOptions]="{standalone:true}" spellcheck="false"></textarea>
+        <label class="field-label config-label">Additional operation configuration (JSON)</label><textarea class="code-editor json-editor" [(ngModel)]="operationConfigurationJson" [ngModelOptions]="{standalone:true}" spellcheck="false"></textarea>
+        <div class="warning-note"><mat-icon>shield</mat-icon><span>Custom C# runs in a separate worker process but is not a security sandbox. Only use trusted code in this local / isolated exercise environment.</span></div>
+      </ng-container>
+      <ng-template #jsonConfig>
+        <ng-container *ngIf="form.get('implementationType')?.value === 'RestApi'; else rawConfig">
+          <div class="form-grid rest-grid">
+            <mat-form-field appearance="outline" class="full-span"><mat-label>Request URL</mat-label><input matInput formControlName="restUrl" placeholder="https://api.example.com/resource"><mat-hint>Use {{ '{' }}{{ '{' }}fieldA{{ '}' }}{{ '}' }} / {{ '{' }}{{ '{' }}fieldB{{ '}' }}{{ '}' }} placeholders in URL or query values.</mat-hint></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>HTTP Method</mat-label><mat-select formControlName="restMethod"><mat-option *ngFor="let method of ['GET','POST','PUT','DELETE','PATCH']" [value]="method">{{ method }}</mat-option></mat-select></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Response type</mat-label><mat-select formControlName="restResponseType"><mat-option value="Json">JSON</mat-option><mat-option value="Text">Text</mat-option></mat-select></mat-form-field>
+            <div><label class="field-label">Headers JSON</label><textarea class="code-editor json-editor" formControlName="restHeadersJson" spellcheck="false"></textarea></div>
+            <div><label class="field-label">Query parameters JSON</label><textarea class="code-editor json-editor" formControlName="restQueryParametersJson" spellcheck="false"></textarea></div>
+            <mat-form-field appearance="outline"><mat-label>Timeout (seconds)</mat-label><input matInput type="number" min="1" max="120" formControlName="restTimeoutSeconds"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Content type</mat-label><input matInput formControlName="restContentType"></mat-form-field>
+            <div class="full-span"><label class="field-label">Request body template (for POST / PUT / PATCH)</label><textarea class="code-editor json-editor" formControlName="restBodyTemplate" spellcheck="false" placeholder='{"value":"FIELD_A"}'></textarea></div>
+            <mat-form-field appearance="outline"><mat-label>Authentication</mat-label><mat-select formControlName="restAuthType"><mat-option value="None">None</mat-option><mat-option value="Bearer">Bearer token</mat-option><mat-option value="ApiKeyHeader">API key header</mat-option></mat-select></mat-form-field>
+            <mat-form-field appearance="outline" *ngIf="form.get('restAuthType')?.value === 'ApiKeyHeader'"><mat-label>API key header name</mat-label><input matInput formControlName="restAuthHeaderName"></mat-form-field>
+            <mat-form-field appearance="outline" class="full-span" *ngIf="form.get('restAuthType')?.value !== 'None'"><mat-label>Secret value (demo only)</mat-label><input matInput type="password" formControlName="restSecretValue"><mat-hint>For this local exercise only. Store real secrets in a dedicated Secret Store.</mat-hint></mat-form-field>
+          </div>
+        </ng-container>
+        <ng-template #rawConfig><label class="field-label">Configuration JSON</label><textarea class="code-editor json-editor" formControlName="configurationJson" spellcheck="false"></textarea></ng-template>
+      </ng-template>
+      <div class="error-note" *ngIf="configError"><mat-icon>error_outline</mat-icon>{{ configError }}</div>
+      <div class="form-actions"><button mat-stroked-button type="button" class="ghost-btn" routerLink="/operations">Cancel</button><button mat-raised-button class="primary-btn" type="submit" [disabled]="loading"><mat-icon>save</mat-icon>{{ loading ? 'Saving…' : 'Save operation' }}</button></div>
+    </section>
+    <aside class="editor-side">
+      <div class="panel side-card"><div class="side-icon"><mat-icon>lightbulb</mat-icon></div><h3>Configuration tip</h3><p>Keep operation-specific options in JSON. The platform stores the definition and the backend engine handles the execution.</p><div class="tip-separator"></div><strong>Supported implementation types</strong><ul><li>Built-in Handler</li><li>Custom C# via Roslyn worker</li><li>Visual Operation Builder (separate screen)</li><li>Generic REST API</li></ul></div>
+      <div class="panel side-card"><div class="side-icon green"><mat-icon>database</mat-icon></div><h3>Versioned history</h3><p>Saving changes increments the operation version. Deleting an operation disables it, preserving historical execution records.</p></div>
+    </aside>
+  </form>
+</div>
+<ng-template #busy><div class="loading-state"><mat-spinner diameter="34"></mat-spinner><span>Loading operation…</span></div></ng-template>

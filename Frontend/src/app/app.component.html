@@ -1,0 +1,41 @@
+<mat-sidenav-container class="app-shell">
+  <mat-sidenav mode="side" opened class="app-sidebar">
+    <div class="brand-lockup">
+      <div class="brand-mark"><img src="assets/mizrahi-tefahot-logo.svg" alt="Mizrahi Tefahot Bank" /></div>
+      <div><div class="brand-name">OPERATIONS HUB</div><div class="brand-subtitle">OPERATION PLATFORM</div></div>
+    </div>
+
+    <div class="nav-section-label">WORKSPACE</div>
+    <a class="nav-link" routerLink="/dashboard" routerLinkActive="active"><mat-icon>grid_view</mat-icon><span>Overview</span></a>
+    <a class="nav-link" routerLink="/operations" routerLinkActive="active"><mat-icon>apps</mat-icon><span>Operations</span><span class="nav-dot"></span></a>
+    <a class="nav-link" routerLink="/builder" routerLinkActive="active"><mat-icon>account_tree</mat-icon><span>Operation Builder</span></a>
+    <a class="nav-link" routerLink="/history" routerLinkActive="active"><mat-icon>history</mat-icon><span>Execution History</span></a>
+
+    <div class="nav-section-label nav-gap">OBSERVABILITY</div>
+    <a class="nav-link" routerLink="/logs" routerLinkActive="active"><mat-icon>receipt_long</mat-icon><span>Application Logs</span></a>
+
+    <div class="sidebar-bottom">
+      <div class="system-card"><span class="online-pulse"></span><div><strong>System operational</strong><small>Local environment</small></div></div>
+      <div class="version-line"><span>OPERATIONS HUB</span><span>v1.0.0</span></div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="app-content">
+    <header class="topbar">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
+          <a *ngIf="breadcrumb.route" [routerLink]="breadcrumb.route">{{ breadcrumb.label }}</a>
+          <span *ngIf="!breadcrumb.route && !last">{{ breadcrumb.label }}</span>
+          <strong *ngIf="last">{{ breadcrumb.label }}</strong>
+          <mat-icon *ngIf="!last">chevron_right</mat-icon>
+        </ng-container>
+      </nav>
+      <div class="topbar-actions">
+        <span class="environment-tag"><span></span> LOCAL ENVIRONMENT</span>
+        <button mat-icon-button class="theme-toggle" (click)="toggleTheme()" [matTooltip]="theme.isDark ? 'Switch to light theme' : 'Switch to dark theme'"><mat-icon>{{ theme.isDark ? 'light_mode' : 'dark_mode' }}</mat-icon></button>
+        <div class="avatar">OP</div>
+      </div>
+    </header>
+    <main class="main-content"><router-outlet></router-outlet></main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

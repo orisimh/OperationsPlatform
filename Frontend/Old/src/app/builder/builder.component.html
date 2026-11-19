@@ -1,0 +1,42 @@
+<div class="page">
+  <div class="page-heading"><div><div class="eyebrow">VISUAL DESIGNER / COMPOSITE OPERATIONS</div><h1>{{ isEdit ? 'Edit operation flow' : 'Operation Builder' }}</h1><p>Compose a reusable operation by connecting trusted handlers. No C# code required.</p></div><button mat-stroked-button class="ghost-btn" routerLink="/operations"><mat-icon>arrow_back</mat-icon> Back to catalog</button></div>
+  <div class="builder-layout">
+    <section class="builder-workspace panel">
+      <div class="canvas-toolbar"><div><strong>Flow canvas</strong><span>Drag cards to reorder execution steps</span></div><button mat-stroked-button class="ghost-btn" (click)="addNode()"><mat-icon>add</mat-icon> Add node</button></div>
+      <div class="flow-canvas">
+        <div class="input-node"><div class="node-symbol"><mat-icon>input</mat-icon></div><div><strong>Operation inputs</strong><small>Field A · Field B</small></div><span class="node-kind">INPUT</span></div>
+        <div class="connector-line"></div>
+        <div cdkDropList class="node-list" (cdkDropListDropped)="drop($event)">
+          <div class="flow-node" *ngFor="let node of nodes; let i = index" cdkDrag>
+            <div class="node-connector"></div>
+            <div class="node-card">
+              <div class="node-head"><div class="node-symbol action"><mat-icon>functions</mat-icon></div><div class="node-title"><strong>{{ handlerLabel(node.handlerKey) }}</strong><small>{{ node.id }} · Built-in handler</small></div><span class="node-number">{{ i + 1 | number:'2.0' }}</span><button mat-icon-button color="warn" (click)="removeNode(i)" matTooltip="Remove node"><mat-icon>close</mat-icon></button><span class="drag-handle" cdkDragHandle><mat-icon>drag_indicator</mat-icon></span></div>
+              <div class="node-config">
+                <mat-form-field appearance="outline"><mat-label>Handler</mat-label><mat-select [(ngModel)]="node.handlerKey" [ngModelOptions]="{standalone:true}"><mat-option *ngFor="let h of handlers" [value]="h.key">{{ h.label }} · {{ h.key }}</mat-option></mat-select></mat-form-field>
+                <div class="node-inputs"><mat-form-field appearance="outline"><mat-label>Input A source</mat-label><mat-select [(ngModel)]="node.inputA" [ngModelOptions]="{standalone:true}"><mat-option *ngFor="let ref of outputReferences(i)" [value]="ref">{{ ref }}</mat-option></mat-select></mat-form-field><mat-form-field appearance="outline"><mat-label>Input B source</mat-label><mat-select [(ngModel)]="node.inputB" [ngModelOptions]="{standalone:true}"><mat-option *ngFor="let ref of outputReferences(i)" [value]="ref">{{ ref }}</mat-option></mat-select></mat-form-field></div>
+                <mat-form-field appearance="outline" class="node-json"><mat-label>Handler configuration (JSON)</mat-label><textarea matInput rows="2" [(ngModel)]="node.configurationJson" [ngModelOptions]="{standalone:true}"></textarea></mat-form-field>
+              </div>
+              <div class="node-output"><mat-icon>south</mat-icon><span>{{ node.id }}.output</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="connector-line"></div>
+        <div class="output-node"><div class="node-symbol result"><mat-icon>output</mat-icon></div><div><strong>Final output</strong><small>Returns the last node result</small></div><span class="node-kind">{{ form.value.outputType | uppercase }}</span></div>
+      </div>
+    </section>
+    <aside class="builder-settings panel">
+      <div class="settings-head"><div class="eyebrow">OPERATION SETTINGS</div><h2>Configure flow</h2><p>Set the metadata that will be shown in the catalog.</p></div>
+      <form [formGroup]="form">
+        <mat-form-field appearance="outline"><mat-label>Operation name</mat-label><input matInput formControlName="name" placeholder="Normalize and compare"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Unique code</mat-label><input matInput formControlName="code" placeholder="builder.normalize-compare"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Description</mat-label><textarea matInput rows="3" formControlName="description"></textarea></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Category</mat-label><input matInput formControlName="category"></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Operation category type</mat-label><mat-select formControlName="operationType"><mat-option value="String">String</mat-option><mat-option value="Integer">Integer</mat-option></mat-select></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Output type</mat-label><mat-select formControlName="outputType"><mat-option *ngFor="let t of outputTypes" [value]="t">{{ t }}</mat-option></mat-select></mat-form-field>
+      </form>
+      <div class="builder-info"><mat-icon>info</mat-icon><p>Nodes execute in order from top to bottom. A node can use Field A, Field B or an output from a previous node. Loops and branching are intentionally not enabled in this first Builder version.</p></div>
+      <div class="builder-error" *ngIf="codeError">{{ codeError }}</div>
+      <button mat-raised-button class="primary-btn save-flow" (click)="save()" [disabled]="loading || !nodes.length"><mat-icon>save</mat-icon> {{ loading ? 'Saving…' : 'Save operation' }}</button>
+    </aside>
+  </div>
+</div>

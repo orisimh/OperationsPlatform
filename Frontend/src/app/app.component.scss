@@ -1,0 +1,36 @@
+.app-shell { height: 100vh; background: var(--bg); }
+.app-sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 26px 16px 18px; color: var(--text); display: flex; flex-direction: column; }
+.brand-lockup { display: flex; align-items: center; gap: 9px; padding: 0 6px 24px; }
+.brand-mark { width: 42px; height: 42px; border-radius: 8px; display: grid; place-items: center; background: #fff; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(77,85,90,.10); }
+.brand-mark img { width: 38px; height: auto; max-height: 38px; object-fit: contain; }
+.brand-mark mat-icon { font-size: 18px; width: 18px; height: 18px; }
+.brand-name { font: 700 13px 'Space Grotesk',sans-serif; letter-spacing: 1.3px; }
+.brand-subtitle { color: var(--muted); font-size: 7px; letter-spacing: .7px; margin-top: 1px; }
+.nav-section-label { padding: 0 12px 10px; color: var(--muted); opacity: .7; font-size: 9px; letter-spacing: 1.5px; font-weight: 700; }
+.nav-gap { margin-top: 28px; }
+.nav-link { height: 40px; display: flex; align-items: center; gap: 13px; padding: 0 12px; margin: 3px 0; color: var(--muted); text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 500; transition: .18s ease; }
+.nav-link mat-icon { width: 19px; height: 19px; font-size: 19px; opacity: .85; }
+.nav-link:hover { background: var(--surface-2); color: var(--text); }
+.nav-link.active { color: var(--text); background: linear-gradient(90deg,rgba(111,126,255,.18),rgba(111,126,255,.06)); box-shadow: inset 2px 0 0 var(--accent); }
+.nav-link.active mat-icon { color: var(--accent); }
+.nav-dot { margin-left: auto; width: 5px; height: 5px; border-radius: 50%; background: var(--accent-2); }
+.sidebar-bottom { margin-top: auto; }
+.system-card { display: flex; align-items: center; gap: 10px; margin: 18px 3px 16px; background: var(--surface-2); border: 1px solid var(--border); padding: 12px; border-radius: 12px; }
+.system-card strong { display: block; font-size: 11px; font-weight: 600; }
+.system-card small { display: block; font-size: 10px; color: var(--muted); margin-top: 4px; }
+.online-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px rgba(66,214,164,.12); }
+.version-line { display: flex; justify-content: space-between; color: var(--muted); opacity: .55; font-size: 8px; letter-spacing: .7px; padding: 0 7px; }
+.app-content { background: var(--bg); }
+.topbar { height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.breadcrumb { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.breadcrumb mat-icon { font-size: 16px; width: 16px; height: 16px; }
+.breadcrumb strong { color: var(--text); font-weight: 600; }
+.breadcrumb a { color: var(--muted); text-decoration: none; }
+.breadcrumb a:hover { color: var(--accent); }
+.topbar-actions { display: flex; align-items: center; gap: 16px; }
+.environment-tag { color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: 1px; display: flex; align-items: center; gap: 7px; }
+.environment-tag span { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+.theme-toggle { color: var(--muted); }
+.avatar { width: 31px; height: 31px; border-radius: 10px; background: var(--surface-3); border: 1px solid var(--border); display: grid; place-items: center; color: var(--accent); font-size: 10px; font-weight: 700; }
+.main-content { min-height: calc(100vh - 58px); }
+@media(max-width:760px) { .app-sidebar { width: 68px; padding: 18px 8px; } .brand-lockup { padding: 0 5px 28px; } .brand-name,.brand-subtitle,.nav-section-label,.nav-link span,.system-card div,.version-line { display:none; } .brand-mark { margin: auto; } .nav-link { justify-content:center; padding:0; } .nav-link mat-icon { margin:0; } .system-card { justify-content:center; padding:12px 0; } .system-card .online-pulse { margin:0; } .topbar { padding:0 16px; } .environment-tag { display:none; } }

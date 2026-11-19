@@ -1,0 +1,30 @@
+<div class="page" *ngIf="!loading; else busy">
+  <div class="page-heading"><div><div class="eyebrow">EXECUTION CENTER / RUN OPERATION</div><h1>{{ operation?.name || 'Execute operation' }}</h1><p>{{ operation?.description }}</p><small class="weather-credit" *ngIf="operation?.code === 'weather.forecast'">Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · CC BY 4.0</small></div><a mat-stroked-button class="ghost-btn" routerLink="/operations"><mat-icon>arrow_back</mat-icon> Operations</a></div>
+  <div class="execute-layout" *ngIf="operation">
+    <section class="panel execute-panel">
+      <div class="execute-title"><div class="op-icon"><mat-icon>{{ operation.icon || 'bolt' }}</mat-icon></div><div><span class="pill success">READY TO EXECUTE</span><h2>Input parameters</h2><p>Provide the two values required by this operation.</p></div></div>
+      <form [formGroup]="form" (ngSubmit)="run()">
+        <div class="form-grid">
+          <mat-form-field appearance="outline"><mat-label>{{ inputA.label || 'Field A' }}</mat-label><input matInput [type]="inputType(inputA)" formControlName="fieldA" [placeholder]="inputA.placeholder || ''" [attr.min]="inputA.min" [attr.max]="inputA.max"><mat-hint>Type: {{ inputA.type || 'String' }}</mat-hint></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>{{ inputB.label || 'Field B' }}</mat-label><input matInput [type]="inputType(inputB)" formControlName="fieldB" [placeholder]="inputB.placeholder || ''" [attr.min]="inputB.min" [attr.max]="inputB.max"><mat-hint>Type: {{ inputB.type || 'String' }}</mat-hint></mat-form-field>
+        </div>
+        <div class="operation-meta"><span><mat-icon>category</mat-icon>{{ operation.category }}</span><span><mat-icon>memory</mat-icon>{{ operation.implementationType }}</span><span><mat-icon>layers</mat-icon>Version {{ operation.version }}</span></div>
+        <button mat-raised-button class="primary-btn run-button" type="submit" [disabled]="executing || form.invalid"><mat-icon>play_arrow</mat-icon>{{ executing ? 'Executing operation…' : 'Execute operation' }}</button>
+      </form>
+    </section>
+    <aside class="side-stats">
+      <div class="panel monthly-card"><div class="stat-icon"><mat-icon>calendar_month</mat-icon></div><span>THIS MONTH</span><strong>{{ response?.monthlyExecutionCount ?? '—' }}</strong><small>Executions of this operation</small></div>
+      <div class="panel info-card"><mat-icon>verified_user</mat-icon><div><strong>Server-side execution</strong><p>Inputs are sent to the ASP.NET API. The server executes the operation and records the result in SQL Server.</p></div></div>
+    </aside>
+  </div>
+
+  <section class="panel result-panel" *ngIf="response" [class.failed]="!response.success">
+    <div class="result-head"><div class="result-status"><span class="result-mark"><mat-icon>{{ response.success ? 'check' : 'error_outline' }}</mat-icon></span><div><h2>{{ response.success ? 'Execution completed' : 'Execution failed' }}</h2><p>{{ response.success ? 'The operation returned a result successfully.' : response.errorMessage }}</p></div></div><div class="result-timing"><strong>{{ response.executionDurationMs }} ms</strong><small>EXECUTION TIME</small></div></div>
+    <div class="result-value" *ngIf="response.success"><span>RESULT</span><pre>{{ resultText }}</pre></div>
+    <div class="result-foot" *ngIf="response.success"><span><mat-icon>database</mat-icon> Saved to execution history</span><span>Execution ID #{{ response.executionId }}</span></div>
+    <div class="trace-block" *ngIf="response.executionTrace"><h3>Builder execution trace</h3><pre>{{ response.executionTrace | json }}</pre></div>
+    <div class="history-inline" *ngIf="response"><div class="history-inline-head"><div><h3>Recent executions</h3><p>Last three runs of this operation</p></div><a routerLink="/history">Full history <mat-icon>arrow_forward</mat-icon></a></div><div class="mini-history" *ngFor="let item of response.lastThreeExecutions"><span class="pill" [class.success]="item.status === 'Success'" [class.danger]="item.status !== 'Success'">{{ item.status }}</span><div class="mini-fields"><div class="mini-field"><span>Field A</span><strong>{{ item.inputA }}</strong></div><div class="mini-field"><span>Field B</span><strong>{{ item.inputB }}</strong></div></div><small>{{ item.executedAtUtc | date:'MMM d, HH:mm:ss' }}</small></div></div>
+  </section>
+  <div class="load-error" *ngIf="loadError">{{ loadError }}</div>
+</div>
+<ng-template #busy><div class="loading-state"><mat-spinner diameter="34"></mat-spinner><span>Preparing operation…</span></div></ng-template>

@@ -1,0 +1,33 @@
+<div class="page" *ngIf="!loading; else busy">
+  <div class="page-heading">
+    <div><div class="eyebrow">CONTROL CENTER / LIVE OVERVIEW</div><h1>Good to see you.</h1><p>Your operations workspace at a glance. Monitor activity and manage your operation library.</p></div>
+    <button mat-raised-button class="primary-btn" routerLink="/operations/new"><mat-icon>add</mat-icon> New operation</button>
+  </div>
+  <div class="error-banner" *ngIf="error"><mat-icon>warning</mat-icon>{{ error }}</div>
+  <div class="metric-grid" *ngIf="data">
+    <div class="metric-card"><div class="metric-top"><span>ACTIVE OPERATIONS</span><span class="metric-icon violet"><mat-icon>apps</mat-icon></span></div><div class="metric-value">{{ data.activeOperations }}</div><div class="metric-note"><span class="status-dot"></span> Available in your catalog</div></div>
+    <div class="metric-card"><div class="metric-top"><span>EXECUTIONS THIS MONTH</span><span class="metric-icon cyan"><mat-icon>bolt</mat-icon></span></div><div class="metric-value">{{ data.executionsThisMonth | number }}</div><div class="metric-note">Current calendar month</div></div>
+    <div class="metric-card"><div class="metric-top"><span>SUCCESS RATE</span><span class="metric-icon green"><mat-icon>task_alt</mat-icon></span></div><div class="metric-value">{{ data.successRate }}<small>%</small></div><div class="metric-progress"><span [style.width.%]="data.successRate"></span></div></div>
+    <div class="metric-card"><div class="metric-top"><span>FAILED EXECUTIONS</span><span class="metric-icon rose"><mat-icon>error_outline</mat-icon></span></div><div class="metric-value">{{ data.failedExecutionsThisMonth }}</div><div class="metric-note">This month</div></div>
+  </div>
+  <div class="dashboard-grid" *ngIf="data">
+    <section class="panel recent-panel">
+      <div class="panel-heading"><div><h2>Recent executions</h2><p>Latest activity across your operations</p></div><a routerLink="/history">View history <mat-icon>arrow_forward</mat-icon></a></div>
+      <div class="table-wrap" *ngIf="data.recentExecutions.length; else noRecent">
+        <table><thead><tr><th>OPERATION</th><th>FIELD A</th><th>FIELD B</th><th>STATUS</th><th>TIME</th></tr></thead><tbody>
+          <tr *ngFor="let row of data.recentExecutions"><td><strong>{{ row.operationName }}</strong><small>{{ row.operationCode }}</small></td><td class="input-cell">{{ row.inputA }}</td><td class="input-cell">{{ row.inputB }}</td><td><span class="pill" [class.success]="row.status === 'Success'" [class.danger]="row.status !== 'Success'">{{ row.status }}</span></td><td>{{ row.executedAtUtc | date:'MMM d, HH:mm' }}</td></tr>
+        </tbody></table>
+      </div>
+      <ng-template #noRecent><div class="empty-state"><mat-icon>history</mat-icon><p>No executions yet. Run an operation to see activity here.</p></div></ng-template>
+    </section>
+    <section class="panel usage-panel">
+      <div class="panel-heading"><div><h2>Most used</h2><p>Popular operations this month</p></div><mat-icon class="muted">insights</mat-icon></div>
+      <div class="usage-list" *ngIf="data.mostUsedOperations.length; else noUsage">
+        <div class="usage-row" *ngFor="let item of data.mostUsedOperations; let i = index"><div class="usage-name"><span class="usage-index">0{{ i + 1 }}</span><strong>{{ item.name }}</strong></div><div class="usage-bar"><span [style.width.%]="(item.count / data.mostUsedOperations[0].count) * 100"></span></div><b>{{ item.count }}</b></div>
+      </div>
+      <ng-template #noUsage><div class="empty-state"><mat-icon>bar_chart</mat-icon><p>Usage insights will appear after the first execution.</p></div></ng-template>
+      <div class="quick-tip"><mat-icon>auto_awesome</mat-icon><div><strong>Build something reusable</strong><p>Use the Operation Builder to combine existing handlers into a new operation.</p><a routerLink="/builder">Open builder <mat-icon>arrow_forward</mat-icon></a></div></div>
+    </section>
+  </div>
+</div>
+<ng-template #busy><div class="page loading-state"><mat-spinner diameter="36"></mat-spinner><span>Loading your workspace…</span></div></ng-template>

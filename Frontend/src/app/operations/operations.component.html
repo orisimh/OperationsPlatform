@@ -1,0 +1,15 @@
+<div class="page">
+  <div class="page-heading"><div><div class="eyebrow">LIBRARY / OPERATION CATALOG</div><h1>Operations</h1><p>Discover, manage and run the building blocks available in your workspace.</p></div><div class="heading-actions"><button mat-stroked-button class="ghost-btn" routerLink="/builder"><mat-icon>account_tree</mat-icon> Build operation</button><button mat-raised-button class="primary-btn" routerLink="/operations/new"><mat-icon>add</mat-icon> Create operation</button></div></div>
+  <div class="filter-bar panel"><mat-form-field appearance="outline" class="search-field"><mat-label>Search operations</mat-label><mat-icon matPrefix>search</mat-icon><input matInput [(ngModel)]="search" placeholder="Name, code or description"></mat-form-field><mat-form-field appearance="outline" class="category-field"><mat-label>Category</mat-label><mat-select [(ngModel)]="category"><mat-option *ngFor="let item of categories" [value]="item">{{ item }}</mat-option></mat-select></mat-form-field><div class="result-count">{{ filtered.length }} <span>operations</span></div></div>
+  <div class="catalog-grid" *ngIf="!loading; else busy">
+    <article class="operation-card panel" *ngFor="let item of filtered">
+      <div class="card-top"><div class="op-icon" [ngClass]="typeClass(item.operationType)"><mat-icon>{{ item.icon || 'bolt' }}</mat-icon></div><span class="pill" [class.success]="item.isActive" [class.warning]="!item.isActive">{{ item.isActive ? 'ACTIVE' : 'DISABLED' }}</span></div>
+      <div class="op-category">{{ item.category }} <span>·</span> {{ item.operationType }}</div>
+      <h3>{{ item.name }}</h3><p class="op-description">{{ item.description || 'No description provided.' }}</p>
+      <div class="op-meta"><span><mat-icon>code</mat-icon>{{ implementationLabel(item) }}</span><span><mat-icon>layers</mat-icon>v{{ item.version }}</span></div>
+      <div class="card-actions"><button mat-button color="primary" [routerLink]="['/execute', item.id]" [disabled]="!item.isActive"><mat-icon>play_arrow</mat-icon> Run</button><span class="spacer"></span><button mat-icon-button [routerLink]="item.implementationType === 'Builder' ? ['/builder', item.id] : ['/operations', item.id, 'edit']" matTooltip="Edit"><mat-icon>edit</mat-icon></button><button mat-icon-button (click)="remove(item)" [disabled]="!item.isActive" matTooltip="Disable"><mat-icon>archive</mat-icon></button></div>
+    </article>
+    <div class="panel empty-state full" *ngIf="filtered.length === 0"><mat-icon>search_off</mat-icon><p>No operations match your filters.</p><button mat-button color="primary" (click)="search=''; category='All'">Clear filters</button></div>
+  </div>
+</div>
+<ng-template #busy><div class="loading"><mat-spinner diameter="32"></mat-spinner></div></ng-template>
