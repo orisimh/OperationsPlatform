@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using OperationsPlatform.Api.Models;
 
 namespace OperationsPlatform.Api.Services;
 
@@ -32,6 +33,9 @@ public sealed class BuiltInHandlerCatalog
 
     public IReadOnlyCollection<string> Keys => _handlers.Keys;
 
+    public IReadOnlyList<HandlerDescriptorDto> GetDescriptors() =>
+        Keys.Select(key => new HandlerDescriptorDto(key, GetLabel(key))).ToList();
+
     public object? Execute(string handlerKey, string? fieldA, string? fieldB, JsonElement configuration)
     {
         if (!_handlers.TryGetValue(handlerKey, out var handler))
@@ -40,6 +44,26 @@ public sealed class BuiltInHandlerCatalog
     }
 
     public bool Exists(string handlerKey) => _handlers.ContainsKey(handlerKey);
+
+    private static string GetLabel(string key) => key switch
+    {
+        "string.concatenate" => "Concatenate",
+        "string.contains" => "Contains",
+        "string.equals" => "Equals",
+        "string.startsWith" => "Starts With",
+        "string.endsWith" => "Ends With",
+        "string.replace" => "Replace",
+        "string.reverse" => "Reverse",
+        "string.lowercase" => "Lowercase",
+        "string.uppercase" => "Uppercase",
+        "string.trim" => "Trim",
+        "integer.add" => "Add",
+        "integer.subtract" => "Subtract",
+        "integer.multiply" => "Multiply",
+        "integer.divide" => "Divide",
+        "integer.modulo" => "Modulo",
+        _ => key
+    };
 
     private static object Replace(string? a, string? b, JsonElement config)
     {

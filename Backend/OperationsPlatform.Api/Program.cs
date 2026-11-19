@@ -35,7 +35,7 @@ builder.Services.AddScoped<SqlApplicationLogWriter>();
 builder.Services.AddSingleton<BuiltInHandlerCatalog>();
 builder.Services.AddSingleton<CSharpWorkerClient>();
 builder.Services.AddScoped<GenericRestApiExecutor>();
-builder.Services.AddSingleton<BuilderOperationExecutor>();
+builder.Services.AddScoped<BuilderOperationExecutor>();
 
 var app = builder.Build();
 

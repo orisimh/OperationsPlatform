@@ -43,7 +43,9 @@ public static class DatabaseSeeder
 
             Rest("weather.forecast", "Weather Forecast", "Gets current weather for latitude and longitude using Open-Meteo.", 160),
             CSharpSample(),
-            BuilderSample()
+            WeatherTemperatureCSharpSample(),
+            BuilderSample(),
+            WeatherTemperatureBuilderSample()
         };
 
         foreach (var operation in operations)
@@ -114,6 +116,20 @@ public static class DatabaseSeeder
         };
     }
 
+    private static OperationDefinition WeatherTemperatureCSharpSample()
+    {
+        const string source = "using System;\nusing System.Text.Json;\npublic static class CustomOperation\n{\n    public static object? Execute(string? fieldA, string? fieldB, JsonElement configuration)\n    {\n        using var document = JsonDocument.Parse(fieldA ?? \"{}\");\n        if (!document.RootElement.TryGetProperty(\"current\", out var current) || !current.TryGetProperty(\"temperature_2m\", out var temperature))\n            return \"Weather temperature unavailable\";\n        var label = configuration.TryGetProperty(\"label\", out var labelElement) ? labelElement.GetString() ?? \"Temperature\" : \"Temperature\";\n        return $\"{label}: {temperature.GetRawText()} C\";\n    }\n}";
+        return new OperationDefinition
+        {
+            Code = "weather.temperature-csharp", Name = "Weather Temperature C#", Description = "Extracts current temperature from Weather Forecast JSON using custom C#.",
+            OperationType = "RestApi", ImplementationType = "CSharp", ExecutionMode = "Server", OutputType = "String",
+            Category = "Custom Code", Icon = "device_thermostat", SortOrder = 175,
+            InputAConfigJson = JsonSerializer.Serialize(new { type = "String", label = "Weather JSON", required = true }),
+            InputBConfigJson = JsonSerializer.Serialize(new { type = "String", label = "Unused", required = false }),
+            ConfigurationJson = JsonSerializer.Serialize(new { sourceCode = source, operationConfiguration = new { label = "Temperature" } })
+        };
+    }
+
     private static OperationDefinition BuilderSample()
     {
         var config = new
@@ -135,6 +151,29 @@ public static class DatabaseSeeder
             Category = "Composite", Icon = "workflow", SortOrder = 180,
             InputAConfigJson = JsonSerializer.Serialize(new { type = "String", label = "First string", required = true }),
             InputBConfigJson = JsonSerializer.Serialize(new { type = "String", label = "Second string", required = true }),
+            ConfigurationJson = JsonSerializer.Serialize(config)
+        };
+    }
+
+    private static OperationDefinition WeatherTemperatureBuilderSample()
+    {
+        var config = new
+        {
+            nodes = new object[]
+            {
+                new { id = "weather", operationCode = "weather.forecast", inputA = "$fieldA", inputB = "$fieldB", configuration = new Dictionary<string, object?>() },
+                new { id = "temperature", operationCode = "weather.temperature-csharp", inputA = "weather.output", inputB = "$fieldB", configuration = new Dictionary<string, object?>() },
+                new { id = "format", operationCode = "string.uppercase", inputA = "temperature.output", inputB = "$fieldB", configuration = new { trimFirst = true } }
+            },
+            @return = "format.output"
+        };
+        return new OperationDefinition
+        {
+            Code = "builder.weather-temperature-summary", Name = "Weather Temperature Summary", Description = "Composite example: REST weather forecast, C# temperature extraction, and uppercase formatting.",
+            OperationType = "RestApi", ImplementationType = "Builder", ExecutionMode = "Server", OutputType = "String",
+            Category = "Composite", Icon = "ac_unit", SortOrder = 185,
+            InputAConfigJson = JsonSerializer.Serialize(new { type = "Number", label = "Latitude", required = true, placeholder = "32.0853", min = -90, max = 90 }),
+            InputBConfigJson = JsonSerializer.Serialize(new { type = "Number", label = "Longitude", required = true, placeholder = "34.7818", min = -180, max = 180 }),
             ConfigurationJson = JsonSerializer.Serialize(config)
         };
     }

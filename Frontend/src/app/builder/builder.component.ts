@@ -4,10 +4,12 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { OperationsApiService } from '../services/operations-api.service';
-import { OperationDefinition, UpsertOperationRequest } from '../models/operation.models';
+import { HandlerDescriptor, OperationDefinition, UpsertOperationRequest } from '../models/operation.models';
 
 interface BuilderNode {
   id: string;
+  operationId?: number;
+  operationCode?: string;
   handlerKey: string;
   inputA: string;
   inputB: string;
@@ -24,25 +26,22 @@ export class BuilderComponent implements OnInit {
   codeError = '';
   nextId = 1;
   outputTypes = ['String', 'Integer', 'Decimal', 'Boolean', 'Json'];
-  handlers = [
-    { key: 'string.lowercase', label: 'Lowercase' }, { key: 'string.uppercase', label: 'Uppercase' },
-    { key: 'string.trim', label: 'Trim' }, { key: 'string.reverse', label: 'Reverse' },
-    { key: 'string.concatenate', label: 'Concatenate' }, { key: 'string.contains', label: 'Contains' },
-    { key: 'string.equals', label: 'Equals' }, { key: 'string.startsWith', label: 'Starts With' },
-    { key: 'string.endsWith', label: 'Ends With' }, { key: 'string.replace', label: 'Replace' },
-    { key: 'integer.add', label: 'Add' }, { key: 'integer.subtract', label: 'Subtract' },
-    { key: 'integer.multiply', label: 'Multiply' }, { key: 'integer.divide', label: 'Divide' },
-    { key: 'integer.modulo', label: 'Modulo' }
-  ];
+  handlers: HandlerDescriptor[] = [];
+  operations: OperationDefinition[] = [];
 
   constructor(private fb: FormBuilder, private api: OperationsApiService, private route: ActivatedRoute, private router: Router, private snack: MatSnackBar, private cdr: ChangeDetectorRef) {
     this.form = this.fb.group({ code: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._-]+$/)]], name: ['', Validators.required], description: [''], category: ['Composite'], icon: ['account_tree'], operationType: ['String'], outputType: ['Boolean'] });
   }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) { this.operationId = Number(id); this.isEdit = true; this.load(this.operationId); }
-    else this.addNode('string.lowercase', '$fieldA', '$fieldB');
+    this.api.getHandlers().subscribe(items => { this.handlers = items; this.cdr.markForCheck(); });
+    this.api.getOperations(false).subscribe(items => {
+      this.operations = items;
+      this.cdr.markForCheck();
+      const id = this.route.snapshot.paramMap.get('id');
+      if (id) { this.operationId = Number(id); this.isEdit = true; this.load(this.operationId); }
+      else if (this.nodes.length === 0) this.addNode();
+    });
   }
 
   load(id: number): void {
@@ -50,7 +49,7 @@ export class BuilderComponent implements OnInit {
     this.api.getOperation(id).subscribe(op => {
       this.form.patchValue(op);
       const config = JSON.parse(op.configurationJson || '{}');
-      this.nodes = (config.nodes || []).map((n: any) => ({ id: n.id, handlerKey: n.handlerKey, inputA: n.inputA, inputB: n.inputB, configurationJson: JSON.stringify(n.configuration || {}, null, 2) }));
+      this.nodes = (config.nodes || []).map((n: any) => ({ id: n.id, operationId: n.operationId, operationCode: n.operationCode, handlerKey: n.handlerKey || '', inputA: n.inputA || '$fieldA', inputB: n.inputB || '$fieldB', configurationJson: JSON.stringify(n.configuration || {}, null, 2) }));
       this.nextId = this.nodes.reduce((max, node) => {
         const match = /^step(\d+)$/.exec(node.id);
         return Math.max(max, match ? Number(match[1]) : 0);
@@ -60,14 +59,41 @@ export class BuilderComponent implements OnInit {
     }, () => { this.loading = false; this.cdr.markForCheck(); this.snack.open('Could not load Builder operation.', 'Close', { duration: 3500 }); });
   }
 
-  addNode(handlerKey = 'string.lowercase', inputA = '$fieldA', inputB = '$fieldB'): void {
+  addNode(handlerKey = '', inputA = '$fieldA', inputB = '$fieldB'): void {
     let id = `step${this.nextId++}`;
     while (this.nodes.some(node => node.id === id)) id = `step${this.nextId++}`;
-    this.nodes.push({ id, handlerKey, inputA, inputB, configurationJson: '{}' });
+    const defaultOperation = this.operations[0];
+    this.nodes.push({
+      id,
+      operationId: defaultOperation?.id,
+      operationCode: defaultOperation?.code,
+      handlerKey,
+      inputA,
+      inputB,
+      configurationJson: '{}'
+    });
   }
   removeNode(index: number): void { this.nodes.splice(index, 1); }
   drop(event: CdkDragDrop<BuilderNode[]>): void { moveItemInArray(this.nodes, event.previousIndex, event.currentIndex); }
   handlerLabel(key: string): string { return this.handlers.find(x => x.key === key)?.label || key; }
+  operationLabel(node: BuilderNode): string {
+    if (node.operationId) {
+      const operation = this.operations.find(item => item.id === node.operationId);
+      return operation ? `${operation.name} · ${operation.code}` : `Operation #${node.operationId}`;
+    }
+    if (node.operationCode) {
+      const operation = this.operations.find(item => item.code === node.operationCode);
+      return operation ? `${operation.name} · ${operation.code}` : node.operationCode;
+    }
+    return this.handlerLabel(node.handlerKey);
+  }
+  selectOperation(node: BuilderNode, operationId: number): void {
+    const operation = this.operations.find(item => item.id === operationId);
+    if (!operation) return;
+    node.operationId = operation.id;
+    node.operationCode = operation.code;
+    node.handlerKey = '';
+  }
   outputReferences(index: number): string[] { return ['$fieldA', '$fieldB', ...this.nodes.slice(0, index).map(n => `${n.id}.output`)]; }
 
   save(): void {
@@ -75,7 +101,7 @@ export class BuilderComponent implements OnInit {
     if (this.form.invalid || this.nodes.length === 0) { this.form.markAllAsTouched(); return; }
     let nodes: any[];
     try {
-      nodes = this.nodes.map(node => ({ id: node.id, handlerKey: node.handlerKey, inputA: node.inputA, inputB: node.inputB, configuration: JSON.parse(node.configurationJson || '{}') }));
+      nodes = this.nodes.map(node => ({ id: node.id, operationId: node.operationId, operationCode: node.operationCode, handlerKey: node.handlerKey, inputA: node.inputA, inputB: node.inputB, configuration: JSON.parse(node.configurationJson || '{}') }));
     } catch { this.codeError = 'One of the node configuration fields contains invalid JSON.'; return; }
     const request: UpsertOperationRequest = {
       code: this.form.value.code, name: this.form.value.name, description: this.form.value.description,

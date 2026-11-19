@@ -10,8 +10,13 @@ namespace OperationsPlatform.Api.Controllers;
 public sealed class OperationsController(
     OperationDefinitionService definitions,
     OperationEngine engine,
-    CSharpWorkerClient csharpWorker) : ControllerBase
+    CSharpWorkerClient csharpWorker,
+    BuiltInHandlerCatalog handlers) : ControllerBase
 {
+    [HttpGet("/api/handlers")]
+    public ActionResult<IReadOnlyList<HandlerDescriptorDto>> GetHandlers()
+        => Ok(handlers.GetDescriptors());
+
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<OperationDto>>> GetAll([FromQuery] bool includeInactive = false, CancellationToken ct = default)
         => Ok(await definitions.GetAllAsync(includeInactive, ct));
